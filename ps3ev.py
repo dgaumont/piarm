@@ -2,6 +2,7 @@ import evdev
 import sys
 
 class ps3ev:
+    DEVICE_NAME="Sony PLAYSTATION"
     BTN_SELECT=288
     BTN_THUMBL=BTN_SELECT+1
     BTN_THUMBR=BTN_SELECT+2
@@ -52,19 +53,23 @@ class ps3ev:
         else:
             print "no code"
 
+    @staticmethod
+    def finddevice():
+        devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
+        for device in devices:
+            if device.name.startswith(ps3ev.DEVICE_NAME):
+                return device
+        return None
 
 
 if __name__ == '__main__':
-    devicenb=0
-    if len(sys.argv) > 1:
-        devicenb=sys.argv[1]
-
-    device = evdev.InputDevice('/dev/input/event'+str(devicenb))
-
-    print(device)
-
-    print "type EV_KEY=", evdev.ecodes.EV_KEY
-
+    device = ps3ev.finddevice()
+    
+    if device == None:
+        print("PS3 controler not plugged")
+        sys.exit()
+    
+    print "wait event from:", device.name
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_KEY and event.value == ps3ev.VAL_PRESSED:
             print(event)
